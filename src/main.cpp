@@ -1,11 +1,25 @@
 #include "vamk_socket.h"
 
 #include "vamk_rfcomm.h"
+#include "vamk_rsa.h"
 #include "vamk_sdp.h"
+
+#include <errno.h>
+#include <fcntl.h>
+#include <iostream>
+#include <unistd.h>
 
 #define CHANNEL 10
 
+using std::vector;
+using std::cout;
+using std::endl;
+
 int main() {
+  printf("Generating RSA key ...\n");
+  vamk::Rsa rsa;
+  rsa.generateKeyPair();
+
   printf("Initializing bluetooth server...\n");
   vamk::Sdp sdp;
   vamk::RfcommServerSocket server;
@@ -26,8 +40,27 @@ int main() {
 
   printf("Waiting for client...\n");
   auto client = server.accept();
+  vector<char> buf;
+  int size;
 
-  int size = client.read();
+  size = client.read(buf);
+  buf.push_back('\0');
+  printf("Received %d bytes:\n", size);
+  if (size > 0)
+    printf("%s\n", &buf[0]);
+
+  vector<char> key = rsa.getPublicKey();
+  printf("Sending public key...\n");
+  client.write(key);
+
+  size = client.read(buf);
+  printf("Received %d bytes.\n", size);
+  if (size > 0) {
+    auto text = rsa.decrypt(buf);
+    printf("Decrypted into %d bytes:\n", text.size());
+    text.push_back('\0');
+    printf("%s\n", &text[0]);
+  }
 
   printf("Closing client socket.\n");
   client.close();

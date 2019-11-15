@@ -2,8 +2,6 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
-#include <iostream>
-
 #include "vamk_sdp.h"
 
 namespace vamk {
@@ -11,18 +9,12 @@ struct Sdp::SdpImpl {
   sdp_session_t *session;
 };
 
-Sdp::Sdp() { _pimpl = std::unique_ptr<SdpImpl>(new SdpImpl); }
+Sdp::Sdp() : _pimpl(new SdpImpl) {}
 Sdp::Sdp(const Sdp &) {}
 Sdp::~Sdp() {}
 
 void Sdp::startAdvertise(void *uuid, char channel_number,
                          SdpServiceInfo *info) {
-
-  char *u = (char *)uuid;
-  for (int i = 0; i < 16; i++) {
-    std::cout << std::hex << (int)u[i] << ' ';
-  }
-  std::cout << std::endl;
 
   uint8_t rfcomm_channel = channel_number;
 

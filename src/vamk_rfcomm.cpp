@@ -3,12 +3,18 @@ extern "C" {
 #include <bluetooth/rfcomm.h>
 }
 
+#include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include "vamk_socket.h"
 
 #include "vamk_rfcomm.h"
+
+#define SZ_SIZE 2
+
+using std::cout;
+using std::endl;
 
 namespace vamk {
 // server socket
@@ -46,13 +52,39 @@ RfcommClientSocket RfcommServerSocket::accept() {
 // client socket
 RfcommClientSocket::RfcommClientSocket(int socket) : Socket(socket) {}
 
-int RfcommClientSocket::read(char *buffer, unsigned int size) {
+int RfcommClientSocket::read(std::vector<char> &buffer) {
   using ::read;
-  return read(_socket, buffer, size);
+
+  unsigned char sz_buf[SZ_SIZE];
+  ssize_t expt_sz; // expected size
+  ssize_t recv_sz; // received size
+
+  // read package size
+  recv_sz = read(_socket, sz_buf, SZ_SIZE);
+  if (recv_sz != SZ_SIZE)
+    return -1;
+  expt_sz = sz_buf[0] * 256 + sz_buf[1];
+
+  // read data into buffer
+  buffer.resize(expt_sz);
+  recv_sz = read(_socket, &buffer[0], expt_sz);
+  if (recv_sz != expt_sz)
+    return -1;
+
+  return expt_sz;
 }
 
-int RfcommClientSocket::write(const char *buffer, unsigned int size) {
+int RfcommClientSocket::write(const std::vector<char> &buffer) {
   using ::write;
-  return write(this->_socket, buffer, size);
+
+  // write package size
+  size_t size = buffer.size();
+  unsigned char sz_buf[SZ_SIZE];
+  sz_buf[0] = (size / 256) % 256;
+  sz_buf[1] = size % 256;
+
+  // write to socket
+  write(this->_socket, sz_buf, 2);
+  return write(this->_socket, &buffer[0], size);
 }
 }

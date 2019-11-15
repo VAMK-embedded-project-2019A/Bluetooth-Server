@@ -1,6 +1,8 @@
 #ifndef VAMK_RFCOMM
 #define VAMK_RFCOMM
 
+#include <vector>
+
 namespace vamk {
 class Socket;
 class RfcommClientSocket;
@@ -30,10 +32,10 @@ public:
   RfcommServerSocket operator=(const RfcommClientSocket &) = delete;
 
   // read from stream
-  int read(char *, unsigned int);
+  int read(std::vector<char>&);
 
   // write to stream
-  int write(const char *, unsigned int);
+  int write(const std::vector<char> &buffer);
 
 private:
   // allocate the socket
