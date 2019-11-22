@@ -1,13 +1,17 @@
-#include <fcntl.h>
-#include <openssl/bn.h>
-#include <openssl/rand.h>
-#include <openssl/rsa.h>
-#include <unistd.h>
+#include <mutex>
 
+#include <openssl/bn.h>
+#include <openssl/rsa.h>
+
+#include "vamk_random.h"
 #include "vamk_rsa.h"
+
+#define RSA_KEY_SIZE 2048
 
 using std::unique_ptr;
 using std::vector;
+using std::mutex;
+using std::lock_guard;
 
 using BN_ptr = unique_ptr<BIGNUM, decltype(&::BN_free)>;
 using RSA_ptr = unique_ptr<RSA, decltype(&::RSA_free)>;
@@ -17,10 +21,10 @@ struct Rsa::RsaImpl {
   RsaImpl();
 
   void generateKeyPair();
-  void seedRandom();
   vector<char> getPublicKey();
   vector<char> decrypt(vector<char>);
 
+  mutex rsa_mutex;
   RSA_ptr rsa;
   BN_ptr bn;
 };
@@ -30,16 +34,18 @@ Rsa::RsaImpl::RsaImpl() : rsa(RSA_new(), ::RSA_free), bn(BN_new(), ::BN_free) {}
 
 void Rsa::RsaImpl::generateKeyPair() {
   // seed the random number generator
-  seedRandom();
+  vamk::seedRandom();
 
   // set modulus
   BN_set_word(bn.get(), RSA_F4);
 
   // generate key
-  int err = RSA_generate_key_ex(rsa.get(), 256, bn.get(), NULL);
+  int err = RSA_generate_key_ex(rsa.get(), RSA_KEY_SIZE, bn.get(), NULL);
 }
 
 vector<char> Rsa::RsaImpl::getPublicKey() {
+  const lock_guard<mutex> lock(rsa_mutex);
+
   // get public exponent
   BIGNUM *n;
   RSA_get0_key(rsa.get(), (const BIGNUM **)&n, NULL, NULL);
@@ -51,26 +57,20 @@ vector<char> Rsa::RsaImpl::getPublicKey() {
 }
 
 vector<char> Rsa::RsaImpl::decrypt(vector<char> data) {
+  const lock_guard<mutex> lock(rsa_mutex);
+
   // allocate buffer
   vector<char> text(RSA_size(rsa.get()));
 
   // decrypt
   ssize_t size = RSA_private_decrypt(
       data.size(), (const unsigned char *)&data[0], (unsigned char *)&text[0],
-      rsa.get(), RSA_PKCS1_PADDING);
+      rsa.get(), RSA_PKCS1_OAEP_PADDING);
 
   // resize buffer to correct size
   text.resize(size);
 
   return text;
-}
-
-void Rsa::RsaImpl::seedRandom() {
-  char buf[10];
-  int fd = open("/dev/random", O_RDONLY);
-  int n = read(fd, buf, sizeof buf);
-  close(fd);
-  RAND_add(buf, sizeof buf, n);
 }
 
 // Rsa forward

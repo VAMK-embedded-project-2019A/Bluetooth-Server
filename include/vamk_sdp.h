@@ -15,10 +15,12 @@ class Sdp {
 public:
   Sdp();
   Sdp(const Sdp &);
+  Sdp operator=(const Sdp &) = delete;
   ~Sdp();
 
   void startAdvertise(void *uuid, char channel, SdpServiceInfo *info);
   void endAdvertise();
+
 private:
   // pImpl technique
   struct SdpImpl;

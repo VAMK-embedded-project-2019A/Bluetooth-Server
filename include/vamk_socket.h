@@ -5,9 +5,9 @@ namespace vamk {
 
 class Socket {
 public:
-    Socket(int socket);
     void close();
 protected:
+    Socket(int socket);
     int _socket;
 };
 }

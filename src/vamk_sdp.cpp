@@ -6,7 +6,7 @@
 
 namespace vamk {
 struct Sdp::SdpImpl {
-  sdp_session_t *session;
+  sdp_session_t *session = nullptr;
 };
 
 Sdp::Sdp() : _pimpl(new SdpImpl) {}
@@ -69,5 +69,9 @@ void Sdp::startAdvertise(void *uuid, char channel_number,
   sdp_list_free(access_proto_list, 0);
 }
 
-void Sdp::endAdvertise() { sdp_close(_pimpl->session); }
+void Sdp::endAdvertise() {
+  if (_pimpl->session)
+    sdp_close(_pimpl->session);
+  _pimpl->session = nullptr;
+}
 }

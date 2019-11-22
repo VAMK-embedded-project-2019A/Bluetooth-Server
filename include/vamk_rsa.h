@@ -10,6 +10,7 @@ class Rsa {
 public:
   Rsa();
   Rsa(const Rsa &) = delete;
+  Rsa operator=(const Rsa &) = delete;
   ~Rsa();
 
   void generateKeyPair();

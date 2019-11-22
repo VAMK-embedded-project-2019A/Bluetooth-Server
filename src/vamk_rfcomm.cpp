@@ -38,7 +38,7 @@ void RfcommServerSocket::listen(int channel) {
 }
 
 // accept one connection
-RfcommClientSocket RfcommServerSocket::accept() {
+std::unique_ptr<RfcommClientSocket> RfcommServerSocket::accept() {
   // server address struct
   struct sockaddr_rc addr;
   socklen_t opt = sizeof(addr);
@@ -46,7 +46,7 @@ RfcommClientSocket RfcommServerSocket::accept() {
   // accept one client
   using ::accept;
   int client = accept(_socket, (struct sockaddr *)&addr, &opt);
-  return RfcommClientSocket(client);
+  return std::unique_ptr<RfcommClientSocket>(new RfcommClientSocket(client));
 }
 
 // client socket
