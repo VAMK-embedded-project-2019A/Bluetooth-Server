@@ -100,7 +100,7 @@ int BtClient::read(std::vector<char> &data) {
 
 int BtClient::write(const std::vector<char> &data) {
   if (_aes) {
-    vector<char> buf = getRandom(16); // iv
+    vector<char> buf = vamk::getRandom(16); // iv
     vector<char> ctext = _aes->encrypt(data, buf); // use buf as iv
 
     // append cipher text to iv and send

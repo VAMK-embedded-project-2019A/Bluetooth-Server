@@ -15,7 +15,7 @@ void seedRandom() {
 
 std::vector<char> getRandom(int size) {
   std::vector<char> result(size);
-  RAND_bytes(&result[0], size);
+  RAND_bytes((unsigned char *)&result[0], size);
   return result;
 }
 }
