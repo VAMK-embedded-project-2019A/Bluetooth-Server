@@ -47,8 +47,8 @@ vector<char> Rsa::RsaImpl::getPublicKey() {
   const lock_guard<mutex> lock(rsa_mutex);
 
   // get public exponent
-  BIGNUM *n;
-  RSA_get0_key(rsa.get(), (const BIGNUM **)&n, NULL, NULL);
+  BIGNUM *n = rsa->n;
+//  RSA_get0_key(rsa.get(), (const BIGNUM **)&n, NULL, NULL);
 
   // copy public exponent into vector<byte>
   vector<char> key(BN_num_bytes(n));
