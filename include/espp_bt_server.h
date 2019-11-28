@@ -3,35 +3,36 @@
 
 #include <memory>
 
-namespace vamk
-{
-	class RfcommServerSocket;
-	class Sdp;
+#define CHANNEL 10
+
+namespace vamk {
+class RfcommServerSocket;
+class Sdp;
 }
 
-namespace espp
-{
+namespace espp {
+
 class BtClient;
 
-class BtServer
-{
+class BtServer {
 public:
-	BtServer() = default;
-	BtServer(const BtServer &) = delete;
-	BtServer operator=(const BtServer &) = delete;
+  BtServer();
+  BtServer(const BtServer &) = delete;
+  BtServer operator=(const BtServer &) = delete;
+  ~BtServer();
 
-	void start();
-	void stop();
-	std::unique_ptr<BtClient> accept();
+  void start();
+  void stop();
+  std::unique_ptr<BtClient> accept();
 
 private:
-	void _init();
-	void _deinit();
+  void _init();
+  void _deinit();
 
-	std::unique_ptr<vamk::Sdp> _sdp;
-	std::shared_ptr<vamk::Rsa> _rsa;
-	std::unique_ptr<vamk::RfcommServerSocket> _server_socket;
+  std::unique_ptr<vamk::Sdp> _sdp;
+  std::shared_ptr<vamk::Rsa> _rsa;
+  std::unique_ptr<vamk::RfcommServerSocket> _server_socket;
 };
 }
 
-#endif // ESPP_BT_SERVER
+#endif
