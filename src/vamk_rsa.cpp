@@ -47,8 +47,12 @@ vector<char> Rsa::RsaImpl::getPublicKey() {
   const lock_guard<mutex> lock(rsa_mutex);
 
   // get public exponent
+#if (OPENSSL_VERSION_NUMBER < 0x010100000)
   BIGNUM *n = rsa->n;
-//  RSA_get0_key(rsa.get(), (const BIGNUM **)&n, NULL, NULL);
+#else
+  BIGNUM *n;
+  RSA_get0_key(rsa.get(), (const BIGNUM **)&n, NULL, NULL);
+#endif
 
   // copy public exponent into vector<byte>
   vector<char> key(BN_num_bytes(n));
